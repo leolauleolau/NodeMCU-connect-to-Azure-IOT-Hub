@@ -124,16 +124,19 @@ static IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle;
 void setup()
 {
   pinMode(LED_PIN, OUTPUT);
-  initSerial();
+  Serial.begin(115200);
+  Serial.setDebugOutput(true);
   delay(2000);
+  
   ss.begin(GPSBaud);
   memset(northing, '\0', sizeof(northing));
   //Serial.println(sizeof(northing));// 40 if = float; 20 if = int
   memset(easting, '\0', sizeof(easting));
+  
   // (sck, mosi, miso, cs);
   adc.begin(D8, D6, D7, D5);
   initWifi();
-  //readCredentials(); //this sheet cause me cannot connect to wifi so i comment it. I don't know what will happend
+ 
   initTime();  //necessary. Otherwise, cannot keep sending message
 
   /*
