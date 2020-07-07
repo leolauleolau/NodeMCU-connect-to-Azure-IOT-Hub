@@ -55,10 +55,11 @@ Adafruit_MCP3008 adc;
 static bool messagePending = false;
 static bool messageSending = true;
 
-#define IOT_CONFIG_WIFI_SSID            "your ssid"
-#define IOT_CONFIG_WIFI_PASSWORD        "your pw"
+//***** Change SSID, Pass, and connection string **********************
+#define IOT_CONFIG_WIFI_SSID            "your_ssid"
+#define IOT_CONFIG_WIFI_PASSWORD        "your_pw"
 
-const char *connectionString = "HostName=gammon-iot-dev.azure-devices.net;DeviceId=esp8266_leo;SharedAccessKey=jh1uXXyUY0q2lhlMpnJFVmNLMqo0htVZMLH0EjPFF9U=";
+const char *connectionString = "your_connection_string";
 const char *ssid = IOT_CONFIG_WIFI_SSID;
 const char *pass = IOT_CONFIG_WIFI_PASSWORD;
 
@@ -75,6 +76,7 @@ void blinkLED()
   delay(500);
   digitalWrite(LED_PIN, LOW);
 }
+
 void initWifi()
 {
   Serial.println("Init WiFi");
@@ -84,7 +86,6 @@ void initWifi()
     while (true);
   }
 
-  //***** Change SSID and Pass **********************
   status = WiFi.begin(ssid, pass);
   //*****************************************************
 
@@ -127,16 +128,16 @@ void setup()
   Serial.begin(115200);
   Serial.setDebugOutput(true);
   delay(2000);
-  
+  //***** GPS **********************
   ss.begin(GPSBaud);
   memset(northing, '\0', sizeof(northing));
   //Serial.println(sizeof(northing));// 40 if = float; 20 if = int
   memset(easting, '\0', sizeof(easting));
-  
+  //*****Mcp3008 pin**********************
   // (sck, mosi, miso, cs);
   adc.begin(D8, D6, D7, D5);
+  
   initWifi();
- 
   initTime();  //necessary. Otherwise, cannot keep sending message
 
   /*
