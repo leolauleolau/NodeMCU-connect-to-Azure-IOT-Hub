@@ -67,6 +67,7 @@ const char *pass = IOT_CONFIG_WIFI_PASSWORD;
 int status = WL_IDLE_STATUS;
 
 static int interval = 10000;
+float reset_time = millis() / 1000;
 
 float reading[8];
 
@@ -183,4 +184,9 @@ void loop()
   }
   IoTHubClient_LL_DoWork(iotHubClientHandle);
   delay(10);
+      if (millis() / 1000 - reset_time >= 3000) {
+    Serial.println("restart...");
+    ESP.restart();
+    reset_time = millis() / 1000;
+  }
 }
