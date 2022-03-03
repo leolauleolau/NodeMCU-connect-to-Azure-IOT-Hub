@@ -1,91 +1,103 @@
-# NodeMCU_to_azure
-This programe is based on microsoft doc
-https://docs.microsoft.com/en-us/samples/azure-samples/iot-hub-sparkfun-thingdev-client-app/spark-fun-esp8266-client/
+# Using NodeMCU(ESP8266) to send telementry to Azure IOT Hub
+## Overview  
+This repo is built because using the official code and document to connect ESP8266 to Azure IOT Hub is not working using the following source:  
+ESP8266 Arduino SDK(version 2.7.1)  
+https://github.com/esp8266/Arduino  
+Microsoft document of ESP8266 to Azure IOT Hub   
+https://docs.microsoft.com/en-us/samples/azure-samples/iot-hub-sparkfun-thingdev-client-app/spark-fun-esp8266-client/  
+  
+If you use these codes directly, you will encounter two to three errors.  You have to change part of the ESP8266 SDK code  
+in order to able to send telementry to Azure IOT Hub.
 
-install CH340 driver for
+_____________________________________________________________________________________________________________________________________________
 
-1. Dowload latest version of Arduino IDE (my version is 1.8.13, non-install version)
+## Requirement  
 
-2. setup the nodemcu compatible to be allow to compile by arduino idle. Below is the link to do this
-https://oranwind.org/-esp8266-nodemcu-zai-arduino-ide-she-ding-nodemcu/
+<ul>
+ <li>VS code</li>
+ <li>Latest Arduino IDE</li>
+ <li>Azure account (you can apply for a free one month trial)</li>
+ <li>ESP8266 board</li>
+</ul>
 
-copy the below link in the Additional boards Manager
+_____________________________________________________________________________________________________________________________________________
 
-http://arduino.esp8266.com/stable/package_esp8266com_index.json
+## Instruction
 
-If error occurs:
+1. Dowload latest version of Arduino IDE (my version is 1.8.13, portable version)
 
-Skipping contributed index file C:\Users\xxxxx\AppData\Local\Arduino15\package_esp8266com_index.json, parsing error occured:
-com.fasterxml.jackson.core.JsonParseException: Unexpected character ('<' (code 60)): expected a valid value (number, String, array, object, 'true', 'false' or 'null')
- at [Source: (FileInputStream); line: 1, column: 2]
+2. Adding board manager of ESP8266 to the arduino idle. Below is the link to do this  
+   https://randomnerdtutorials.com/how-to-install-esp8266-board-arduino-ide/  
 
+3.  Install the following libraries from Sketch -> Include library -> Manage libraries  
+    (Remember to make sure the publisher is by Microsoft)
 
-based on the issues on github https://github.com/esp8266/Arduino/issues/6068
-use the below link in preference
-https://arduino.esp8266.com/stable/package_esp8266com_index.json
-
-During its download, it comes to 4 parts. It stops in each part. So you have to click "install" again 4 times
-
-3.Install the following libraries from Sketch -> Include library -> Manage libraries
-Remember to make sure the publisher is by Microsoft
-
-AzureIoTHub (mine is version 1.3.8)
-AzureIoTUtility (mine is version 1.3.8)
-AzureIoTProtocol_MQTT (mine is version 1.3.8)
-ArduinoJson (mine is version 5.1.3) Don't use version 6.x.x some function is not available in this version
-Adafruit_MCP3008 (if you are using MCP3008)
-
-compile until all required library is installed
+>AzureIoTHub (mine is version 1.3.8)  
+AzureIoTUtility (mine is version 1.3.8)  
+AzureIoTProtocol_MQTT (mine is version 1.3.8)  
+ArduinoJson (mine is version 5.1.3) Don't use version 6.x.x some function is not available in this version  
+Adafruit_MCP3008 (if you are using MCP3008)  
 
 
-4. Then there will be error like this below when you compile
+4. Fix the inevitable error of the ESP8266 SDK code  
 
-C:\Users\leolau\Documents\Arduino\libraries\AzureIoTHub\src\iothub_client_ll_uploadtoblob.c:26:27: fatal error: internal/blob.h: No such file or directory
- #include "internal/blob.h"
-                           ^
-compilation terminated.
-exit status 1
+>C:\Users\leolau\Documents\Arduino\libraries\AzureIoTHub\src\iothub_client_ll_uploadtoblob.c:26:27: fatal error: internal/blob.h: No such file or directory
+ #include "internal/blob.h"  
+                           ^  
+>compilation terminated.  
+exit status 1  
+Error compiling for board NodeMCU 1.0 (ESP-12E Module).  
+
+You have to change some codes inside azure library in order to make it works.
+<ol>
+ <ol>
+ <li>Navigate to<br>
+  <br>
+   <em>C:\Users\Change_to_your_window_user_name\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\2.7.1\cores\esp8266</em></li><br>  
+ <br>
+ <li>Locate and open the file <em>Arduino.h</em> in VS code, comment out the line<br>
+  <em>#define round(x)     ((x)>=0?(long)((x)+0.5):(long)((x)-0.5))</em><br>
+  at line 137.</li><br>
+
+<li>paste the platform.local.txt file from<br>
+ <br>
+<em>C:\Users\Change_to_your_window_user_name\Documents\Arduino\libraries\AzureIoTHub\examples\iothub_ll_telemetry_sample\esp8266</em><br>
+ <br>
+ into two folders' level up from the Arduino.h step above<br>
+ <em>(C:\Users\Change_to_your_window_user_name\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\2.7.1)</em><br>
+ </li>  
+<br>
+Open platform.txt and add <em>-DDONT_USE_UPLOADTOBLOB</em> and <em>-DUSE_BALTIMORE_CERT</em> to <em>build.extra_flags=</em> in platform.txt in order to run the sample.<br>
+<br>
+Note1: If your device is not intended to connect to the global portal.azure.com, please change the CERT define to the appropriate cert define as laid out in certs.c<br>
+<br>
+Note2: Due to RAM limits of ESP8266, you must select just one CERT define.<br>
+</ol>  
+</ol><br>
+
+5.  Next Error :  
+
+>exec: "{runtime.tools.python.path}/python": file does not exist  
 Error compiling for board NodeMCU 1.0 (ESP-12E Module).
 
-Here is the most on9 part. You have to change some words inside azure library in order to make it works.
-below are the links to the official Azure+Arduino library:
-https://github.com/Azure/azure-iot-arduino
+There is also an issues related to the error as 
+>python.exe": file does not exist  
 
-below are the instruction
-Navigate to  C:\Users\<your user name>\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\2.7.1\cores\esp8266
+I follow the below instruction to fix it: https://forum.arduino.cc/index.php?topic=663500.0  
 
-Locate the board's Arduino.h (hardware/esp8266/<board package version>/cores/esp8266/ and comment out the line containing #define round(x), around line 137.
+By doing this:
+<ol>
+ <ol>
+<li>Open the platform.local.txt file you saved to the ESP8266 core in a text editor.</li>
 
-Two folders up from the Arduino.h step above, in the same folder as the board's platform.txt, paste the platform.local.txt file from the esp8266 folder in the sample into it.
-(directories:  C:\Users\leolau\Documents\Arduino\libraries\AzureIoTHub\examples\iothub_ll_telemetry_sample\esp8266)
+ <li>Delete the contents of the file.</li>
 
-Note1: It is necessary to add -DDONT_USE_UPLOADTOBLOB and -DUSE_BALTIMORE_CERT to build.extra_flags= in a platform.txt in order to run the sample, however, you can define them in your own platform.txt or a platform.local.txt of your own creation.
+<li>Add this single line of code:  
+>Code: [Select]  
+build.extra_flags=-DESP8266 -DDONT_USE_UPLOADTOBLOB -DUSE_BALTIMORE_CERT  
+ </li>
+ </ol>
+</ol><br>
 
-Note2: If your device is not intended to connect to the global portal.azure.com, please change the CERT define to the appropriate cert define as laid out in certs.c
+6.  Compile and upload the sample code of Microsoft to your ESP8266 board and it should work.  
 
-Note3: Due to RAM limits, you must select just one CERT define.
-
-5. Next Error : 
-
-exec: "{runtime.tools.python.path}/python": file does not exist
-Error compiling for board NodeMCU 1.0 (ESP-12E Module).
-
-There is also an issues related to this issues in the github
-https://github.com/esp8266/Arduino/issues/5881
-But I don't use what he suggest. Rather, I follow the arduino master to do this:
-https://forum.arduino.cc/index.php?topic=663500.0
-
-Do this:
-Open the platform.local.txt file you saved to the ESP8266 core in a text editor.
-
-Delete the contents of the file.
-
-Add this single line of code:
-Code: [Select]
-build.extra_flags=-DESP8266 -DDONT_USE_UPLOADTOBLOB -DUSE_BALTIMORE_CERT
-
-viola!
-Done compile
-
-P:\Nodemcu\NodeMcu\Azure_NodeMCU+MCP3008 +GPS\app\app.ino:61:33: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
- static char *connectionString = "HostName=gammon-iot-dev.azure-devices.net;DeviceId=esp8266_leo;SharedAccessKey=jh1uXXyUY0q2lhlMpnJFVmNLMqo0htVZMLH0EjPFF9U=";
